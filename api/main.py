@@ -49,7 +49,8 @@ def create_payment():
 
     except Exception as e:
         app.logger.error(f"Unexpected error: {e}")
-        return jsonify({'error': 'An unexpected error occurred'}), 500
+        # Return the exact error for debugging
+        return jsonify({'error': str(e)}), 500
 
 # Route pour exécuter le paiement après approbation PayPal
 @app.route('/payment/execute')
@@ -68,6 +69,14 @@ def execute_payment():
 @app.route('/payment/cancel')
 def cancel_payment():
     return jsonify({'status': 'Payment canceled!'})
+
+@app.route('/test-config')
+def test_config():
+    return jsonify({
+        "client_id": os.environ.get("PAYPAL_CLIENT_ID"),
+        "client_secret": os.environ.get("PAYPAL_CLIENT_SECRET")
+    })
+
 
 """#####################################-PayPal_End-###########################################"""
 
