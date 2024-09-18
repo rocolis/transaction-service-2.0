@@ -1,12 +1,14 @@
-from flask import Flask, request, jsonify, render_template, redirect, url_for
-import paypalrestsdk
 import os
+
+import paypalrestsdk
 from dotenv import load_dotenv
+from flask import Flask, request, jsonify, render_template, redirect, url_for
 
 load_dotenv()
 
 app = Flask(__name__)
 
+"""#####################################-PayPal-###########################################"""
 # Configuration PayPal en mode sandbox
 paypalrestsdk.configure({
     "mode": "sandbox",  # Utiliser "live" pour le mode production
@@ -62,6 +64,63 @@ def execute_payment():
 @app.route('/payment/cancel')
 def cancel_payment():
     return jsonify({'status': 'Payment canceled!'})
+
+"""#####################################-PayPal_End-###########################################"""
+
+"""#####################################-Orange-###########################################
+# Charger les informations d'API
+ORANGE_MONEY_API_URL = os.environ.get("ORANGE_MONEY_API_URL")
+ORANGE_MONEY_API_KEY = os.environ.get("ORANGE_MONEY_API_KEY")
+ORANGE_MONEY_SECRET_KEY = os.environ.get("ORANGE_MONEY_SECRET_KEY")
+
+@app.route('/create-payment', methods=['POST'])
+def create_payment():
+    amount = request.form.get('amount')
+
+    # Préparer les données pour Orange Money
+    data = {
+        "amount": amount,
+        "currency": "XOF",  # ou la devise utilisée par Orange Money
+        "order_id": "unique_order_id_here",
+        "return_url": "http://localhost:5000/payment/execute",
+        "cancel_url": "http://localhost:5000/payment/cancel"
+    }
+
+    headers = {
+        'Authorization': f'Bearer {ORANGE_MONEY_API_KEY}',
+        'Content-Type': 'application/json',
+        'Secret-Key': ORANGE_MONEY_SECRET_KEY
+    }
+
+    response = requests.post(f"{ORANGE_MONEY_API_URL}/create-payment", json=data, headers=headers)
+
+    if response.status_code == 200:
+        payment_url = response.json().get('payment_url')
+        return jsonify({'payment_url': payment_url})
+    else:
+        return jsonify({'error': response.json()}), response.status_code
+
+@app.route('/payment/execute', methods=['GET'])
+def execute_payment():
+    payment_id = request.args.get('paymentId')
+
+    # Valider le paiement auprès de l'API d'Orange Money
+    headers = {
+        'Authorization': f'Bearer {ORANGE_MONEY_API_KEY}',
+        'Content-Type': 'application/json',
+        'Secret-Key': ORANGE_MONEY_SECRET_KEY
+    }
+
+    response = requests.get(f"{ORANGE_MONEY_API_URL}/validate-payment/{payment_id}", headers=headers)
+
+    if response.status_code == 200:
+        return jsonify({'status': 'Payment executed successfully!'})
+    else:
+        return jsonify({'error': response.json()}), response.status_code
+
+@app.route('/payment/cancel', methods=['GET'])
+def cancel_payment():
+    return jsonify({'status': 'Payment canceled!'})"""
 
 if __name__ == '__main__':
     app.run(debug=True)
