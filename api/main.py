@@ -18,7 +18,11 @@ paypalrestsdk.configure({
     "client_secret": os.environ.get("PAYPAL_CLIENT_SECRET")
 })
 
-@app.route('/api/create-payment', methods=['POST'])
+@app.route('/')
+def index():
+    return jsonify({'message': 'Welcome to the Payment Service API!'})
+
+@app.route('/create-payment', methods=['POST'])
 def create_payment():
     payment = paypalrestsdk.Payment({
         "intent": "sale",
@@ -28,8 +32,8 @@ def create_payment():
             "description": "Transaction example"
         }],
         "redirect_urls": {
-            "return_url": "https://transaction-service-2-0.vercel.app/api/payment/execute",
-            "cancel_url": "https://transaction-service-2-0.vercel.app/api/payment/cancel"
+            "return_url": "http://localhost:5000/payment/execute",
+            "cancel_url": "http://localhost:5000/payment/cancel"
         }
     })
 
@@ -37,6 +41,7 @@ def create_payment():
         return jsonify({'paymentID': payment.id})
     else:
         return jsonify({'error': payment.error}), 500
+
 
 @app.route('/api/payment/execute', methods=['GET'])
 def execute_payment():
