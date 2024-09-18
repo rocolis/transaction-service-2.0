@@ -12,8 +12,8 @@ app = Flask(__name__)
 # Configuration PayPal en mode sandbox
 paypalrestsdk.configure({
     "mode": "sandbox",  # Utiliser "live" pour le mode production
-    "client_id": os.environ.get("AUAnBMM6yCy3e3mEhM6NB8-uBcUcufuWsm--PvmFzcbYjmnKuRFpoJzmtoMWHslXyNzCEJghCAam98iq"),  # Remplacer par votre client ID PayPal sandbox
-    "client_secret": os.environ.get("EHG6b87oub44aq61dLvhZORQx4_wY1knINwntqJp7Q1M4vx8WdjHm9tScIkzYMv7JvalzdQZAXSpYR3P")  # Remplacer par votre secret client PayPal sandbox
+    "client_id": os.environ.get("PAYPAL_CLIENT_ID"),  # Remplacer par votre client ID PayPal sandbox
+    "client_secret": os.environ.get("PAYPAL_CLIENT_SECRET")  # Remplacer par votre secret client PayPal sandbox
 })
 
 # Page pour entrer le montant de la commande
