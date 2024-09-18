@@ -1,10 +1,29 @@
 {
-  "version": 2,
   "builds": [
-    { "src": "api/main.py", "use": "@vercel/python" }
+    {
+      "src": "api/main.py",
+      "use": "@vercel/python"
+    },
+    {
+      "src":"api/utils.py",
+      "use":"@vercel/python"
+    }
   ],
   "routes": [
-    { "src": "/api/(.*)", "dest": "/api/main.py" },
-    { "handle": "filesystem" }
+    {
+      "src": "/(.*)",
+      "dest": "api/main.py"
+    },
+    {
+      "handle": "filesystem"
+    },
+    {
+      "src": "api/utils",
+      "dest": "api/utils.py"
+    },
+    {
+      "src":"api/mailServer.py",
+      "dest":"api/mailServer.py"
+    }
   ]
 }
