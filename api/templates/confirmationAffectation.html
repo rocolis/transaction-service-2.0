@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ROCOLIS - Votre annonce est en cours de validation</title>
+       <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f5f7fa;
+        color: #333;
+        margin-top: 100px;
+        padding: 0;
+      }
+      .container {
+        width: 100%;
+        margin-top: 20px;
+        max-width: 600px;
+        margin: 0 auto;
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+      }
+      .header {
+        background-color: #10837f;
+        color: #ffffff;
+        text-align: center;
+        padding: 20px;
+      }
+      .header img {
+        width: 200px;
+        height: auto;
+      }
+      .content {
+        padding: 20px;
+      }
+      .content h1 {
+        font-size: 24px;
+        margin-bottom: 10px;
+      }
+      .content p {
+        font-size: 16px;
+        line-height: 1.5;
+      }
+      .content .details {
+        margin: 20px 0;
+        padding: 15px;
+        background-color: #f8f9fa;
+        border-radius: 8px;
+      }
+      .content .details p {
+        margin: 0;
+        font-size: 14px;
+        color: #555;
+      }
+      .content .btn {
+        display: block;
+        width: fit-content;
+        margin: 0 auto;
+        padding: 10px 20px;
+        background-color: #171046;
+        color: #ffffff;
+        text-align: center;
+        border-radius: 5px;
+        text-decoration: none;
+      }
+      .footer {
+        text-align: center;
+        padding: 20px;
+        background-color: #171046;
+        color: #ffffff;
+        font-size: 14px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <img
+          src="https://i.ibb.co/9YsvN3N/Logotype-Officiel-Rocolis-blanc.png"
+          alt="Logo de la compagnie"
+        />
+      </div>
+      <div class="content">
+        <h1 style="color: red">Annonce en cours de validation<h1>
+        <p>Bonjour {username},</p>
+        <p style="text-align: center;">
+          Voici votre code validation :  <div align="center">
+            <p
+              href="https://unlayer.com"
+              target="_blank"
+              class="v-size-width"
+              style="
+                box-sizing: border-box;
+                display: inline-block;
+                font-family: arial, helvetica, sans-serif;
+                text-decoration: none;
+                -webkit-text-size-adjust: none;
+                text-align: center;
+                color: #ffffff;
+                background-color: #181147;
+                border-radius: 1px;
+                -webkit-border-radius: 1px;
+                -moz-border-radius: 1px;
+                width: 55%;
+                padding: 15px 0px 15px 0px;
+                max-width: 100%;
+                overflow-wrap: break-word;
+                word-break: break-word;
+                word-wrap: break-word;
+              "
+            >
+            {validation_code}
+              >
+            </p>
+          </div>
+        </p>
+        <span
+        style="
+          font-size: 16px;
+          line-height: 28.8px;
+        "
+        ><br />Ignorez ce message si vous
+        n'avez pas confirmé votre compte
+      </span>
+      </div>
+      <div class="footer">
+        <p>Cordialement,</p>
+        <p>L'équipe Rocolis</p>
+      </div>
+    </div>
+  </body>
+</html>
