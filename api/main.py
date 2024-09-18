@@ -4,32 +4,21 @@ import os
 from dotenv import load_dotenv
 from flask_compress import Compress
 from flask_cors import CORS
-from pymongo import MongoClient
 
 load_dotenv()
-
-SECRET_KEY = os.environ.get("SECRET")
-MONGOURI = os.environ.get("MONGOURI")
-DBNAME = os.environ.get("DBNAME")
-USERSCOLLECTIONNAME = os.environ.get("USERSCOLLECTIONNAME")
-
-CLIENT = MongoClient(MONGOURI)
-db = CLIENT[DBNAME]
-users_collection = db[USERSCOLLECTIONNAME]
 
 app = Flask(__name__)
 CORS(app)
 Compress(app)
-app.config['SECRET_KEY'] = SECRET_KEY
+app.config['SECRET_KEY'] = os.environ.get('SECRET')
 
-# Configuration PayPal
 paypalrestsdk.configure({
-    "mode": "sandbox",  # Utiliser "live" pour le mode production
-    "client_id": os.environ.get("AUAnBMM6yCy3e3mEhM6NB8-uBcUcufuWsm--PvmFzcbYjmnKuRFpoJzmtoMWHslXyNzCEJghCAam98iq"),
-    "client_secret": os.environ.get("EHG6b87oub44aq61dLvhZORQx4_wY1knINwntqJp7Q1M4vx8WdjHm9tScIkzYMv7JvalzdQZAXSpYR3P")
+    "mode": "sandbox",
+    "client_id": os.environ.get("PAYPAL_CLIENT_ID"),
+    "client_secret": os.environ.get("PAYPAL_CLIENT_SECRET")
 })
 
-@app.route('/create-payment', methods=['POST'])
+@app.route('/api/create-payment', methods=['POST'])
 def create_payment():
     payment = paypalrestsdk.Payment({
         "intent": "sale",
@@ -39,8 +28,8 @@ def create_payment():
             "description": "Transaction example"
         }],
         "redirect_urls": {
-            "return_url": "https://rocolis.vercel.app/payment/execute",
-            "cancel_url": "https://rocolis.vercel.app/payment/cancel"
+            "return_url": "https://transaction-service-2-0.vercel.app/api/payment/execute",
+            "cancel_url": "https://transaction-service-2-0.vercel.app/api/payment/cancel"
         }
     })
 
@@ -49,7 +38,7 @@ def create_payment():
     else:
         return jsonify({'error': payment.error}), 500
 
-@app.route('/payment/execute', methods=['GET'])
+@app.route('/api/payment/execute', methods=['GET'])
 def execute_payment():
     payment_id = request.args.get('paymentId')
     payer_id = request.args.get('PayerID')
@@ -61,7 +50,7 @@ def execute_payment():
     else:
         return jsonify({'error': payment.error}), 500
 
-@app.route('/payment/cancel', methods=['GET'])
+@app.route('/api/payment/cancel', methods=['GET'])
 def cancel_payment():
     return jsonify({'status': 'Payment canceled!'})
 
