@@ -12,8 +12,8 @@ app = Flask(__name__)
 # Configuration PayPal en mode sandbox
 paypalrestsdk.configure({
     "mode": "sandbox",  # Utiliser "live" pour le mode production
-    "client_id": os.environ.get("PAYPAL_CLIENT_ID"),  # Remplacer par votre client ID PayPal sandbox
-    "client_secret": os.environ.get("PAYPAL_CLIENT_SECRET")  # Remplacer par votre secret client PayPal sandbox
+    "client_id": "AUAnBMM6yCy3e3mEhM6NB8-uBcUcufuWsm--PvmFzcbYjmnKuRFpoJzmtoMWHslXyNzCEJghCAam98iq",  # Remplacer par votre client ID
+    "client_secret": "EHG6b87oub44aq61dLvhZORQx4_wY1knINwntqJp7Q1M4vx8WdjHm9tScIkzYMv7JvalzdQZAXSpYR3P"  # Remplacer par votre secret client
 })
 
 # Page pour entrer le montant de la commande
@@ -73,8 +73,11 @@ def cancel_payment():
 @app.route('/test-config')
 def test_config():
     return jsonify({
-        "client_id": os.environ.get("PAYPAL_CLIENT_ID"),
-        "client_secret": os.environ.get("PAYPAL_CLIENT_SECRET")
+        # Remplacer par votre client ID
+        "client_id": "AUAnBMM6yCy3e3mEhM6NB8-uBcUcufuWsm--PvmFzcbYjmnKuRFpoJzmtoMWHslXyNzCEJghCAam98iq",
+
+        # Remplacer par votre secret client
+        "client_secret": "EHG6b87oub44aq61dLvhZORQx4_wY1knINwntqJp7Q1M4vx8WdjHm9tScIkzYMv7JvalzdQZAXSpYR3P"
     })
 
 
