@@ -33,8 +33,8 @@ Compress(app)
 
 users_collection = db[USERSCOLLECTIONNAME]
 
-API_KEY_PAYTECH = os.environ.get("API_KEY")
-API_SECRET = os.environ.get("API SECRET")
+API_KEY_PAYTECH = os.environ.get("API_PAYTECH")
+API_SECRET = os.environ.get("API_SECRET")
 
 payment_request_url = "https://paytech.sn/api/payment/request-payment"
 regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,7}\b'
@@ -94,21 +94,6 @@ def generate_reference(length=10):
     return ''.join(random.choice(letters_and_digits) for i in range(length))
 
 
-params_professionnel = {
-    "item_name": "Rocolis abonnement professionnel",
-    "item_price": "100",
-    "currency": "XOF",
-    "ref_command": "IPHONETEST2",
-    "command_name": "Paiement abonnement afaire",
-    "env": "test",
-    "ipn_url": "https://domaine.com/ipn",
-    "success_url": "https://domaine.com/success",
-    "cancel_url": "https://domaine.com/cancel",
-    "custom_field": json.dumps({
-        "custom_field1": "value_1",
-        "custom_field2": "value_2",
-    })
-}
 params_affaires = {
     "item_name": "Rocolis abonnement affaire",
     "item_price": "100",
@@ -207,11 +192,10 @@ def payement_rocolis_business(current_user):
         if collection:
             users_collection.update_one({"_id": ObjectId(user_id)}, {"$set": {"payement_token": token}})
         json_response = response.json()
-        print(json_response)
+        return json_response
     else:
         print(f"Error: {response.status_code}, {response.text}")
 
 
 if __name__ == '__main__':
-    from waitress import serve
-    serve(app)
+    app.run(debug=True,port=6000)
