@@ -15,7 +15,7 @@ from bson import ObjectId
 from dotenv import load_dotenv
 import os
 import re
-from api.utils import return_sub_using_email
+from utils import return_sub_using_email
 
 load_dotenv()
 
@@ -213,4 +213,5 @@ def payement_rocolis_business(current_user):
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    from waitress import serve
+    serve(app)
