@@ -198,4 +198,5 @@ def payement_rocolis_business(current_user):
 
 
 if __name__ == '__main__':
-    app.run(debug=True,port=6000)
+    from waitress import serve
+    serve(app)
