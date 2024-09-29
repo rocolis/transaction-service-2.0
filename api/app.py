@@ -191,7 +191,7 @@ def payement_rocolis_business(current_user):
         "ref_command": token,
         "command_name": "Paiement abonnement business",
         "env": "test",
-        "ipn_url": "http://192.168.1.10:5000/ipn",
+        "ipn_url": "https://rocolis-payement-service.onrender.com/ipn",
         "success_url": f"https://localhost:5173/payement/{fake_crypted_token}/{fake_crypted_token}/{crypted_token}/{fake_crypted_token}",
         "cancel_url": "https://domaine.com/cancel",
         "custom_field": json.dumps({
