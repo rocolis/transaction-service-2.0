@@ -1,3 +1,4 @@
+import datetime
 import hashlib
 
 import requests
@@ -118,17 +119,51 @@ headers = {
 }
 
 
-@app.route('/api/v1/payement/affaire', methods=['POST'])
+@app.route('/api/v1/payement/pro', methods=['POST'])
 @token_required
-def payement_rocolis_affaires():
+def payement_rocolis_pro(current_user):
+    token = generate_reference()
     data = request.get_json()
     user_id = data.get("sub")
-    response = requests.post(payment_request_url, json=params_affaires, headers=headers)
+
+    def hash_token(tokens, salt):
+        return hashlib.sha256((tokens + salt).encode()).hexdigest()
+
+    crypted_token = hash_token(token, "120")
+    fake_crypted_token = hash_token(generate_reference(10), "120")
+
+    params_pro = {
+        "item_name": "Rocolis abonnement professionnel",
+        "item_price": "200",  # Mettez à jour le prix si nécessaire
+        "currency": "XOF",
+        "ref_command": token,
+        "command_name": "Paiement abonnement pro",
+        "env": "test",
+        "ipn_url": "https://rocolis-payement-service.onrender.com/ipn",
+        "success_url": f"https://rocolis-xxx--five.vercel.app/payement/{fake_crypted_token}/{fake_crypted_token}/{crypted_token}/{fake_crypted_token}",
+        "cancel_url": "https://domaine.com/cancel",
+        "custom_field": json.dumps({
+            "type_abonnement": "pro",
+            "custom_field2": "N/A",
+        })
+    }
+
+    # Vérifier si l'utilisateur a déjà un abonnement actif
+    if users_collection.find_one({"_id": ObjectId(user_id)}).get("account_type") in ["business", "pro"]:
+        return jsonify({"message": "Vous avez déjà un abonnement en cours, veuillez attendre la fin de celui-ci pour "
+                                   "changer ou continuer votre plan."}), 401
+
+    response = requests.post(payment_request_url, json=params_pro, headers=headers)
+
     if response.status_code == 200:
+        # Mettre à jour le champ `payement_token` dans la base de données
+        users_collection.update_one({"_id": ObjectId(user_id)},
+                                    {"$set": {"payement_token": token, "status_token": crypted_token}})
         json_response = response.json()
-        print(json_response)
+        return json_response
     else:
         print(f"Error: {response.status_code}, {response.text}")
+        return jsonify({"message": "Erreur lors du traitement du paiement."}), response.status_code
 
 
 @app.route('/ipn', methods=['POST'])
@@ -145,15 +180,54 @@ def index():
 
 
 def process_ipn(ipn_data):
-    payment_status = ipn_data.get('payment_status')
-    transaction_id = ipn_data.get('txn_id')
-    amount_paid = ipn_data.get('mc_gross')
-    payer_email = ipn_data.get('payer_email')
+    ref_command = ipn_data.get('ref_command')
+    payment_method = ipn_data.get('payment_method')
+    amount_paid = ipn_data.get('item_price')
+    payment_status = ipn_data.get('type_event')
+    type_abonnement_main = ipn_data.get("custom_field")
+    type_abonnement = type_abonnement_main.get("type_abonnement")
+    user = users_collection.find_one({"payement_token": ref_command})
 
-    if payment_status == "Completed":
-        print(f"Paiement réussi pour la transaction : {transaction_id}")
+    if user:
+        if payment_status == "sale_complete":
+            print(f"Paiement réussi pour la commande : {ref_command}")
+            update_fields = {}
+            if type_abonnement == "business":
+                update_fields = {
+                    "account_type": "business",
+                    "max_weight": 50,
+                    "started_abonnement": datetime.datetime.utcnow()
+                }
+            elif type_abonnement == "pro":
+                update_fields = {
+                    "account_type": "pro",
+                    "max_weight": 100,
+                    "started_abonnement": datetime.datetime.utcnow(),
+                    "payment_method": payment_method
+                }
+            users_collection.update_one({"payement_token": ref_command}, {"$set": update_fields})
+            print(f"Utilisateur {user['_id']} mis à jour avec succès.")
+            users_collection.update_one({"payement_token": ref_command}, {"$unset": {"payement_token": ""}})
+            print(f"Le champ 'payement_token' pour l'utilisateur {user['_id']} a été supprimé.")
+        else:
+            print(f"Statut de paiement : {payment_status}, aucun changement effectué.")
     else:
-        print(f"Statut de paiement : {payment_status}")
+        print(f"Commande avec la référence {ref_command} non trouvée dans la base de données.")
+
+
+@app.route('/api/v1/check/payement/status', methods=['POST'])
+def check_payement_status():
+    data = request.get_json()
+    status_token = data.get("status_token")
+
+    user = users_collection.find_one({"status_token": status_token})
+    if user:
+        user_type = user.get("account_type")
+        users_collection.delete_one({"status_token": status_token})
+
+        return jsonify({"message": "success", "userType": user_type}), 200
+    else:
+        return jsonify({"error": "error"}), 404
 
 
 @app.route('/api/v1/payement/business', methods=['POST'])
@@ -177,20 +251,25 @@ def payement_rocolis_business(current_user):
         "command_name": "Paiement abonnement business",
         "env": "test",
         "ipn_url": "https://rocolis-payement-service.onrender.com/ipn",
-        "success_url": f"https://localhost:5173/payement/{fake_crypted_token}/{fake_crypted_token}/{crypted_token}/{fake_crypted_token}",
+        "success_url": f"https://rocolis-xxx--five.vercel.app/payement/{fake_crypted_token}/{fake_crypted_token}/{crypted_token}/{fake_crypted_token}",
         "cancel_url": "https://domaine.com/cancel",
         "custom_field": json.dumps({
-            "custom_field1": "N/A",
+            "type_abonnement": "business",
             "custom_field2": "N/A",
         })
     }
+
+    if users_collection.find_one({"_id": ObjectId(user_id)}).get("account_type") in ["business", "pro"]:
+        return jsonify({"messgae": "Vous avez déjà abonnement encours, veuillez attendre la fin de celui ci pour "
+                                   "changer ou continuer votre plan"}), 401
 
     response = requests.post(payment_request_url, json=params_business, headers=headers)
 
     if response.status_code == 200:
         collection = users_collection.find_one({"_id": ObjectId(user_id)})
         if collection:
-            users_collection.update_one({"_id": ObjectId(user_id)}, {"$set": {"payement_token": token}})
+            users_collection.update_one({"_id": ObjectId(user_id)},
+                                        {"$set": {"payement_token": token, "status_token": crypted_token}})
         json_response = response.json()
         return json_response
     else:
