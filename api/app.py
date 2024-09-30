@@ -179,12 +179,21 @@ def index():
     return "running running", 200
 
 
+import json
+
 def process_ipn(ipn_data):
     ref_command = ipn_data.get('ref_command')
     payment_method = ipn_data.get('payment_method')
     amount_paid = ipn_data.get('item_price')
     payment_status = ipn_data.get('type_event')
-    type_abonnement_main = ipn_data.get("custom_field")
+
+    # Désérialiser le champ 'custom_field'
+    try:
+        type_abonnement_main = json.loads(ipn_data.get("custom_field", "{}"))
+    except json.JSONDecodeError:
+        print(f"Erreur lors de la désérialisation de 'custom_field' pour la commande {ref_command}")
+        return
+
     type_abonnement = type_abonnement_main.get("type_abonnement")
     user = users_collection.find_one({"payement_token": ref_command})
 
@@ -213,6 +222,7 @@ def process_ipn(ipn_data):
             print(f"Statut de paiement : {payment_status}, aucun changement effectué.")
     else:
         print(f"Commande avec la référence {ref_command} non trouvée dans la base de données.")
+
 
 
 @app.route('/api/v1/check/payement/status', methods=['POST'])
