@@ -181,6 +181,7 @@ def index():
 
 import json
 
+
 def process_ipn(ipn_data):
     ref_command = ipn_data.get('ref_command')
     payment_method = ipn_data.get('payment_method')
@@ -224,7 +225,6 @@ def process_ipn(ipn_data):
         print(f"Commande avec la référence {ref_command} non trouvée dans la base de données.")
 
 
-
 @app.route('/api/v1/check/payement/status', methods=['POST'])
 def check_payement_status():
     data = request.get_json()
@@ -243,49 +243,52 @@ def check_payement_status():
 @app.route('/api/v1/payement/business', methods=['POST'])
 @token_required
 def payement_rocolis_business(current_user):
-    token = generate_reference()
-    data = request.get_json()
-    user_id = data.get("sub")
+    try:
+        token = generate_reference()
+        data = request.get_json()
+        user_id = data.get("sub")
 
-    def hash_token(tokens, salt):
-        return hashlib.sha256((tokens + salt).encode()).hexdigest()
+        def hash_token(tokens, salt):
+            return hashlib.sha256((tokens + salt).encode()).hexdigest()
 
-    crypted_token = hash_token(token, "120")
-    fake_crypted_token = hash_token(generate_reference(10), "120")
+        crypted_token = hash_token(token, "120")
+        fake_crypted_token = hash_token(generate_reference(10), "120")
 
-    params_business = {
-        "item_name": "Rocolis abonnement professionnel",
-        "item_price": "100",
-        "currency": "XOF",
-        "ref_command": token,
-        "command_name": "Paiement abonnement business",
-        "env": "test",
-        "ipn_url": "https://rocolis-payement-service.onrender.com/ipn",
-        "success_url": f"https://rocolis-xxx--five.vercel.app/payement/{fake_crypted_token}/{fake_crypted_token}/{crypted_token}/{fake_crypted_token}",
-        "cancel_url": "https://domaine.com/cancel",
-        "custom_field": json.dumps({
-            "type_abonnement": "business",
-            "custom_field2": "N/A",
-        })
-    }
+        params_business = {
+            "item_name": "Rocolis abonnement professionnel",
+            "item_price": "100",
+            "currency": "XOF",
+            "ref_command": token,
+            "command_name": "Paiement abonnement business",
+            "env": "test",
+            "ipn_url": "https://rocolis-payement-service.onrender.com/ipn",
+            "success_url": f"https://rocolis-xxx--five.vercel.app/payement/{fake_crypted_token}/{fake_crypted_token}/{crypted_token}/{fake_crypted_token}",
+            "cancel_url": "https://domaine.com/cancel",
+            "custom_field": json.dumps({
+                "type_abonnement": "business",
+                "custom_field2": "N/A",
+            })
+        }
 
-    if users_collection.find_one({"_id": ObjectId(user_id)}).get("account_type") in ["business", "pro"]:
-        return jsonify({"messgae": "Vous avez déjà abonnement encours, veuillez attendre la fin de celui ci pour "
-                                   "changer ou continuer votre plan"}), 401
+        print("je suis icic")
+        if users_collection.find_one({"_id": ObjectId(user_id)}).get("account_type") in ["business", "pro"]:
+            return jsonify({"message": "Vous avez déjà abonnement encours, veuillez attendre la fin de celui ci pour "
+                                       "changer ou continuer votre plan"}), 401
 
-    response = requests.post(payment_request_url, json=params_business, headers=headers)
+        response = requests.post(payment_request_url, json=params_business, headers=headers)
 
-    if response.status_code == 200:
-        collection = users_collection.find_one({"_id": ObjectId(user_id)})
-        if collection:
-            users_collection.update_one({"_id": ObjectId(user_id)},
-                                        {"$set": {"payement_token": token, "status_token": crypted_token}})
-        json_response = response.json()
-        return json_response
-    else:
-        print(f"Error: {response.status_code}, {response.text}")
+        if response.status_code == 200:
+            collection = users_collection.find_one({"_id": ObjectId(user_id)})
+            if collection:
+                users_collection.update_one({"_id": ObjectId(user_id)},
+                                            {"$set": {"payement_token": token, "status_token": crypted_token}})
+            json_response = response.json()
+            return json_response
+        else:
+            print(f"Error: {response.status_code}, {response.text}")
+    except Exception as e:
+        print(e)
 
 
 if __name__ == '__main__':
-    from waitress import serve
-    serve(app)
+    app.run(debug=True)
